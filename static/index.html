@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI ニュース DJ</title>
+  <link rel="icon" href="data:,">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: #0d0f18;
+      color: #d0d0e0;
+      line-height: 1.5;
+      min-height: 100vh;
+      font-size: 13px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #111420;
+      border-bottom: 1px solid #1e2130;
+      padding: 0.45rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 0.7rem; }
+    header h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    #engine-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.15rem 0.5rem;
+      border-radius: 10px;
+    }
+    .engine-claude { background: #1e2a52; color: #7aa4ff; border: 1px solid #2a3a6a; }
+    .engine-ollama { background: #162a1e; color: #5acf8a; border: 1px solid #1e4a2a; }
+    #article-count { font-size: 0.75rem; color: #4a4a6a; }
+
+    /* ── Toolbar (2 rows) ── */
+    .toolbar {
+      background: #111420;
+      padding: 0.4rem 1.2rem;
+      border-bottom: 1px solid #1e2130;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .toolbar-sep   { width: 1px; height: 18px; background: #252840; flex-shrink: 0; }
+    .toolbar-spacer { flex: 1; }
+
+    /* ── Buttons ── */
+    button {
+      border: none; cursor: pointer;
+      transition: all 0.12s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #4a6cf7, #7a4af7);
+      color: white;
+      padding: 0.3rem 0.75rem;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .btn-primary:hover { filter: brightness(1.15); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary {
+      background: #1a1d30;
+      color: #8888aa;
+      border: 1px solid #252840;
+      padding: 0.28rem 0.65rem;
+      border-radius: 5px;
+      font-size: 0.75rem;
+    }
+    .btn-secondary:hover { color: #c8c8e0; border-color: #3a3d60; background: #1e2238; }
+    .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .url-input {
+      flex: 1; max-width: 300px;
+      background: #0d0f1c;
+      border: 1px solid #252840;
+      border-radius: 5px;
+      color: #c0c0d8;
+      font-size: 0.75rem;
+      padding: 0.28rem 0.6rem;
+      outline: none; font-family: inherit;
+    }
+    .url-input:focus { border-color: #4a6cf7; }
+    .url-input::placeholder { color: #2a2a4a; }
+    .url-label { font-size: 0.72rem; color: #3a3a5a; flex-shrink: 0; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      background: #0d0f1c;
+      padding: 0.35rem 1.2rem;
+      border-bottom: 1px solid #1e2130;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .search-wrap { position: relative; flex-shrink: 0; }
+    .search-icon {
+      position: absolute; left: 0.5rem; top: 50%;
+      transform: translateY(-50%);
+      color: #2a2a4a; font-size: 0.75rem;
+      pointer-events: none; user-select: none;
+    }
+    #search-input {
+      background: #111420;
+      border: 1px solid #252840;
+      border-radius: 6px;
+      color: #c0c0d8;
+      font-size: 0.75rem;
+      padding: 0.28rem 0.7rem 0.28rem 1.75rem;
+      width: 175px; outline: none; font-family: inherit;
+    }
+    #search-input:focus { border-color: #4a6cf7; }
+    #search-input::placeholder { color: #2a2a4a; }
+    .filter-scroll {
+      display: flex; gap: 0.3rem;
+      overflow-x: auto; flex: 1;
+      scrollbar-width: none;
+      align-items: center; padding: 0.05rem 0;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+    .filter-sep { width: 1px; height: 16px; background: #252840; flex-shrink: 0; }
+    .btn-refresh {
+      font-size: 0.72rem; padding: 0.24rem 0.6rem;
+      border-radius: 5px; background: #151828;
+      color: #5a5a8a; border: 1px solid #252840; flex-shrink: 0;
+    }
+    .btn-refresh:hover { background: #1a1d30; color: #8888b8; }
+
+    /* ── Chips ── */
+    .chip {
+      font-size: 0.68rem; padding: 0.16rem 0.5rem;
+      border-radius: 10px; cursor: pointer;
+      border: 1px solid transparent;
+      background: #151828; color: #505080;
+      transition: all 0.12s; user-select: none; white-space: nowrap;
+    }
+    .chip:hover { background: #1a1d30; color: #8080b0; }
+    .chip.active { background: #1a2252; color: #7a9ef8; border-color: #2a3a7a; }
+    .chip-all.active   { background: #0d2a1a; color: #5acf7a; border-color: #1a4a2a; }
+    .chip-fav          { background: #151200; color: #5a5020; }
+    .chip-fav.active   { background: #2a2000; color: #e8c000; border-color: #5a4400; }
+    .chip-research.active  { background: #1a2040; color: #8ab4ff; border-color: #2a3060; }
+    .chip-tools.active     { background: #0e2828; color: #5adcd0; border-color: #1a4040; }
+    .chip-business.active  { background: #281800; color: #e0c060; border-color: #4a3000; }
+    .chip-society.active   { background: #280a0a; color: #e09090; border-color: #4a1818; }
+    .chip-build.active     { background: #1e1a00; color: #d4c040; border-color: #3a3000; }
+
+    /* ── Status bar ── */
+    #status-bar {
+      padding: 0.18rem 1.2rem;
+      font-size: 0.72rem; min-height: 1.3rem;
+      display: flex; align-items: center; color: #3a3a5a;
+    }
+    .s-info  { color: #6e8efb; }
+    .s-ok    { color: #4aaa4a; }
+    .s-error { color: #cc4444; }
+
+    /* ── Digest panel ── */
+    #digest-panel {
+      display: none;
+      padding: 0.55rem 1.2rem;
+      border-bottom: 1px solid #1e2130;
+    }
+    #digest-panel.open { display: block; }
+    .digest-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 0.35rem;
+    }
+    .digest-title { font-size: 0.75rem; font-weight: 600; color: #a777e3; }
+    .digest-close {
+      background: none; border: none; color: #3a3a5a;
+      font-size: 0.9rem; cursor: pointer; padding: 0 0.2rem;
+    }
+    .digest-close:hover { color: #d0d0e0; }
+    #digest-text {
+      font-size: 0.82rem; color: #b8b8d8; line-height: 1.75;
+      background: #0f1120;
+      border-left: 3px solid #5a4af055;
+      padding: 0.45rem 0.7rem;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* ── Article list ── */
+    #article-list {
+      padding: 0.5rem 1rem;
+      display: flex; flex-direction: column;
+      gap: 0.25rem;
+      max-width: 1100px; margin: 0 auto;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: #131627;
+      border: 1px solid #1e2235;
+      border-radius: 6px;
+      padding: 0.45rem 0.9rem;
+      transition: transform 0.12s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: #2a3868;
+      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.3);
+    }
+    .card.is-favorite { background: #151400; border-color: #3a3000; }
+    .card.is-favorite:hover {
+      border-color: #5a4800;
+      box-shadow: 0 3px 14px rgba(200, 160, 0, 0.08);
+    }
+
+    .card-top { display: flex; align-items: flex-start; gap: 0.45rem; }
+    .card-body { flex: 1; min-width: 0; }
+
+    /* Star button — left of title */
+    .btn-fav {
+      background: none; border: none; cursor: pointer;
+      font-size: 1rem; color: #3a3a5a;
+      padding: 0; line-height: 1; flex-shrink: 0;
+      margin-top: 2px;
+      transition: color 0.15s, transform 0.1s;
+    }
+    .btn-fav:hover { color: #e8d060; transform: scale(1.2); }
+    .btn-fav.active { color: #e8c000; }
+
+    /* Title row: title + meta inline */
+    .card-title-row {
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600;
+      color: #b8c4ff; text-decoration: none;
+      line-height: 1.4;
+      flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .card-title:hover { color: #7a9dff; }
+    .genre-badge { font-size: 0.75rem; flex-shrink: 0; }
+
+    /* Source color badges */
+    .src-badge {
+      font-size: 0.62rem; font-weight: 700;
+      padding: 0.07rem 0.38rem; border-radius: 4px;
+      white-space: nowrap; letter-spacing: 0.01em;
+    }
+    .src-tc     { background: #0d2a5a; color: #6aabff; }
+    .src-vb     { background: #0d3a1a; color: #5acf7a; }
+    .src-ai     { background: #2a0d4a; color: #b07af8; }
+    .src-reddit { background: #3a1a00; color: #ff7a3a; }
+    .src-hn     { background: #2a1200; color: #ff9a3a; }
+    .src-openai { background: #0d2a2a; color: #4acfcf; }
+    .src-google { background: #1a1a3a; color: #7a8aff; }
+    .src-anth   { background: #1a0a3a; color: #c07af8; }
+    .src-dec    { background: #0a2a2a; color: #3acfcf; }
+    .src-other  { background: #1a1a2a; color: #6a6a9a; }
+
+    .card-date { font-size: 0.67rem; color: #3a3a5a; }
+    .card-orig {
+      font-size: 0.67rem; color: #6e6e96;
+      font-style: italic; margin-top: 0.1rem;
+      line-height: 1.3; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .card-actions {
+      display: flex; align-items: center;
+      gap: 0.25rem; flex-shrink: 0; margin-top: 1px;
+    }
+    .btn-sum {
+      font-size: 0.75rem; padding: 0.25rem 0.7rem;
+      border-radius: 4px; background: #1a1630;
+      border: 1px solid #4a3fdf66; color: #8a7aef; cursor: pointer;
+      transition: all 0.15s; font-weight: 600;
+    }
+    .btn-sum:hover { background: #7a6adf1a; border-color: #7a6adf88; }
+    .btn-sum:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-regen {
+      font-size: 0.7rem; padding: 0.16rem 0.38rem;
+      border-radius: 4px; background: transparent;
+      border: 1px solid #2a2d3a; color: #4a4a6a; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-regen:hover { color: #a777e3; border-color: #a777e344; }
+    .btn-regen:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-del {
+      font-size: 0.7rem; padding: 0.16rem 0.38rem;
+      border-radius: 4px; background: transparent;
+      border: 1px solid transparent; color: #3a3a5a; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-del:hover { color: #e05555; border-color: #e0555533; background: #e0555511; }
+
+    /* ── Summary ── */
+    .summary-wrap { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+    .summary-wrap.open { max-height: 2000px; }
+    .summary-block {
+      margin-top: 0.4rem;
+      padding: 0.4rem 0.65rem;
+      background: #0e1020;
+      border-left: 3px solid #5a4af0;
+      border-radius: 0 5px 5px 0;
+      font-size: 0.78rem; color: #b0b0c8; line-height: 1.65;
+    }
+
+    /* ── Read state ── */
+    .card.is-read { border-left: 3px solid #2a4a2a; }
+    .card.is-read .card-title { color: #8888b0; }
+    .read-check {
+      font-size: 0.65rem; color: #3a8a3a;
+      background: #0d2010; border: 1px solid #1a4020;
+      border-radius: 3px; padding: 0.05rem 0.3rem;
+      flex-shrink: 0; letter-spacing: 0.02em;
+    }
+
+    /* ── Unread chip ── */
+    .chip-unread.active { background: #1a1e38; color: #6a9ef8; border-color: #2a3070; }
+
+    /* ── Date separator ── */
+    .date-sep {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #6a6a9a;
+      padding: 0.6rem 0 0.25rem;
+      border-bottom: 1px solid #1a1d2e;
+      margin-bottom: 0.1rem;
+      letter-spacing: 0.04em;
+    }
+    .date-sep:first-child { padding-top: 0.1rem; }
+
+    /* ── Pagination ── */
+    #pagination {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 1rem 1rem 2rem;
+      flex-wrap: wrap;
+    }
+    .btn-page {
+      background: #1a1d30; color: #6060a0;
+      border: 1px solid #252840;
+      padding: 0.3rem 0.65rem;
+      border-radius: 5px; font-size: 0.8rem; cursor: pointer;
+      font-family: inherit; transition: all 0.15s; min-width: 2.1rem; text-align: center;
+    }
+    .btn-page:hover { color: #a0a0d0; border-color: #3a3d60; background: #1e2238; }
+    .btn-page:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-page.active { background: #1a2252; color: #7a9ef8; border-color: #2a3a7a; cursor: default; }
+    .page-ellipsis { color: #3a3a5a; font-size: 0.8rem; padding: 0 0.2rem; }
+
+    /* ── Mobile ── */
+    @media (max-width: 640px) {
+      header { padding: 0.35rem 0.7rem; }
+      .toolbar { padding: 0.4rem 0.6rem; }
+      .toolbar-row { flex-wrap: wrap; }
+      .url-input { max-width: none; flex: 1; min-width: 0; }
+      #article-list { padding: 0.35rem 0.4rem; }
+      .card { padding: 0.4rem 0.55rem; }
+      .card-title { font-size: 13px; }
+      .filter-bar { padding: 0.3rem 0.6rem; gap: 0.3rem; }
+      #search-input { width: 130px; }
+      .modal { width: 95vw; }
+      .source-url { max-width: 120px; }
+    }
+
+    /* ── Stream cursor ── */
+    .stream-cursor {
+      display: inline-block; width: 2px; height: 0.9em;
+      background: #a777e3; margin-left: 1px;
+      vertical-align: text-bottom;
+      animation: blink 0.7s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* ── Empty / Loading ── */
+    .empty-state { text-align: center; padding: 4rem 1rem; color: #333; }
+    .spinner {
+      display: inline-block; width: 11px; height: 11px;
+      border: 2px solid #6e8efb33; border-top-color: #6e8efb;
+      border-radius: 50%; animation: spin 0.6s linear infinite;
+      margin-right: 4px; vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: #00000099; z-index: 200;
+      align-items: flex-start; justify-content: center; padding-top: 3rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #111420; border: 1px solid #2a2d3a;
+      border-radius: 8px; width: 540px;
+      max-width: 95vw; max-height: 80vh;
+      display: flex; flex-direction: column;
+    }
+    .modal-header {
+      padding: 0.7rem 1rem; border-bottom: 1px solid #1e2130;
+      display: flex; align-items: center;
+      justify-content: space-between; flex-shrink: 0;
+    }
+    .modal-title { font-size: 0.9rem; font-weight: 600; color: #c0c8ff; }
+    .modal-close {
+      background: none; border: none; color: #555;
+      font-size: 1.1rem; cursor: pointer; padding: 0 0.2rem;
+    }
+    .modal-close:hover { color: #d0d0e0; }
+    .modal-body { padding: 0.75rem 1rem; overflow-y: auto; flex: 1; }
+
+    /* Source list in modal */
+    .source-item {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.4rem 0; border-bottom: 1px solid #1a1d2a;
+    }
+    .source-item:last-child { border-bottom: none; }
+    .source-name { flex: 1; font-size: 0.8rem; color: #c0c8e0; }
+    .source-url  {
+      font-size: 0.65rem; color: #404460;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;
+    }
+    .toggle-switch { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0;
+      background: #2a2d3a; border-radius: 18px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute;
+      width: 12px; height: 12px; left: 3px; top: 3px;
+      background: #555; border-radius: 50%;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: #2a4a2e; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(14px); background: #5acf8a; }
+
+    .add-source-form {
+      display: flex; gap: 0.4rem;
+      margin-top: 0.75rem; padding-top: 0.75rem;
+      border-top: 1px solid #1e2130; flex-wrap: wrap;
+    }
+    .add-source-form input {
+      flex: 1; min-width: 120px;
+      background: #1a1d2a; border: 1px solid #2a2d3a;
+      color: #d0d0e0; padding: 0.28rem 0.55rem;
+      border-radius: 4px; font-size: 0.8rem; outline: none; font-family: inherit;
+    }
+    .add-source-form input:focus { border-color: #4a6cf7; }
+    #new-source-name { width: 110px; flex: none; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>AI ニュース DJ</h1>
+    <span id="engine-badge"></span>
+  </div>
+  <span id="article-count"></span>
+</header>
+
+<!-- Toolbar: row 1 = 取得/追加, row 2 = AI処理/設定 -->
+<div class="toolbar">
+  <div class="toolbar-row">
+    <button id="btn-fetch-rss" class="btn-primary" onclick="fetchRSS()">🔄 RSS取得</button>
+    <span class="toolbar-sep"></span>
+    <label class="url-label" for="url-input">URL:</label>
+    <input type="url" id="url-input" class="url-input" placeholder="https://example.com/article または RSS feed"
+           onkeydown="if(event.key==='Enter') addURL()">
+    <button class="btn-secondary" onclick="addURL()">追加</button>
+  </div>
+  <div class="toolbar-row">
+    <button id="btn-translate-all" class="btn-secondary" onclick="translateAllTitles()">📝 全タイトル翻訳</button>
+    <button id="btn-classify-all" class="btn-secondary" onclick="classifyAll()">🏷 全ジャンル分類</button>
+    <span class="toolbar-spacer"></span>
+    <button id="btn-digest" class="btn-secondary" onclick="toggleDigest()">📰 ダイジェスト</button>
+    <button class="btn-secondary" onclick="openSourceModal()">⚙️ ソース管理</button>
+  </div>
+</div>
+
+<!-- Filter bar: 1 row with horizontal scroll -->
+<div class="filter-bar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="キーワード..." oninput="scheduleSearch()">
+  </div>
+  <div class="filter-scroll">
+    <span class="chip chip-all active" data-src="" onclick="toggleSource('')">すべて</span>
+    <span class="chip" data-src="techcrunch.com" onclick="toggleSource('techcrunch.com')">TechCrunch</span>
+    <span class="chip" data-src="venturebeat.com" onclick="toggleSource('venturebeat.com')">VentureBeat</span>
+    <span class="chip" data-src="www.artificialintelligence-news.com" onclick="toggleSource('www.artificialintelligence-news.com')">AI News</span>
+    <span class="chip" data-src="www.reddit.com" onclick="toggleSource('www.reddit.com')">Reddit</span>
+    <span class="chip" data-src="hnrss.org" onclick="toggleSource('hnrss.org')">HN</span>
+    <span class="chip" data-src="openai.com" onclick="toggleSource('openai.com')">OpenAI</span>
+    <span class="chip" data-src="blog.research.google" onclick="toggleSource('blog.research.google')">Google</span>
+    <span class="chip" data-src="www.anthropic.com" onclick="toggleSource('www.anthropic.com')">Anthropic</span>
+    <span class="chip" data-src="the-decoder.com" onclick="toggleSource('the-decoder.com')">Decoder</span>
+    <span class="filter-sep"></span>
+    <span class="chip chip-all active" data-genre="" onclick="toggleGenre('')">全ジャンル</span>
+    <span class="chip chip-research" data-genre="research" onclick="toggleGenre('research')">🔬 研究</span>
+    <span class="chip chip-tools" data-genre="tools" onclick="toggleGenre('tools')">🛠️ 開発</span>
+    <span class="chip chip-business" data-genre="business" onclick="toggleGenre('business')">💼 ビジネス</span>
+    <span class="chip chip-society" data-genre="society" onclick="toggleGenre('society')">🌍 社会・倫理</span>
+    <span class="chip chip-build" data-genre="build_ideas" onclick="toggleGenre('build_ideas')">💡 作ってみた</span>
+    <span class="filter-sep"></span>
+    <span class="chip chip-fav" id="chip-fav" onclick="toggleFavoriteFilter()">⭐ お気に入り</span>
+    <span class="chip chip-unread" id="chip-unread" onclick="toggleUnreadFilter()">📭 未読</span>
+  </div>
+  <button class="btn-refresh" onclick="loadArticles(1)">更新</button>
+</div>
+
+<div id="status-bar"></div>
+
+<!-- Digest Panel -->
+<div id="digest-panel">
+  <div class="digest-header">
+    <span class="digest-title">📰 今日のAIニュース ダイジェスト</span>
+    <button class="digest-close" onclick="closeDigest()">✕</button>
+  </div>
+  <div id="digest-text">ダイジェストを生成するには「📰 ダイジェスト」ボタンを押してください。</div>
+</div>
+
+<div id="article-list"></div>
+<div id="pagination"></div>
+
+<!-- Source Management Modal -->
+<div class="modal-overlay" id="source-modal" onclick="if(event.target===this)closeSourceModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">⚙️ RSSソース管理</span>
+      <button class="modal-close" onclick="closeSourceModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="source-list"></div>
+      <div class="add-source-form">
+        <input type="text" id="new-source-name" placeholder="名前">
+        <input type="url" id="new-source-url" placeholder="https://example.com/feed.xml"
+               onkeydown="if(event.key==='Enter') addSource()">
+        <button class="btn-primary" onclick="addSource()">追加</button>
+      </div>
+      <div id="source-modal-status" style="font-size:0.75rem;margin-top:0.5rem;min-height:1.2rem;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let searchTimer     = null;
+let selectedSources = new Set();
+let selectedGenres  = new Set();
+let favoriteOnly    = false;
+let unreadOnly      = false;
+let digestOpen      = false;
+const PAGE_SIZE      = 50;
+let currentPage      = 1;
+let totalPages       = 1;
+let lastRenderedDate = null;
+
+const GENRE_INFO = {
+  research:   { emoji: '🔬', label: 'モデル・研究' },
+  tools:      { emoji: '🛠️', label: 'ツール・開発' },
+  business:   { emoji: '💼', label: 'ビジネス' },
+  society:    { emoji: '🌍', label: '社会・倫理' },
+  build_ideas:{ emoji: '💡', label: '作ってみた' },
+};
+
+const SRC_BADGE = {
+  'techcrunch.com':                        { label: 'TechCrunch', cls: 'src-tc' },
+  'venturebeat.com':                       { label: 'VentureBeat', cls: 'src-vb' },
+  'www.artificialintelligence-news.com':   { label: 'AI News', cls: 'src-ai' },
+  'artificialintelligence-news.com':       { label: 'AI News', cls: 'src-ai' },
+  'www.reddit.com':                        { label: 'Reddit', cls: 'src-reddit' },
+  'reddit.com':                            { label: 'Reddit', cls: 'src-reddit' },
+  'hnrss.org':                             { label: 'HN', cls: 'src-hn' },
+  'openai.com':                            { label: 'OpenAI', cls: 'src-openai' },
+  'blog.research.google':                  { label: 'Google', cls: 'src-google' },
+  'www.anthropic.com':                     { label: 'Anthropic', cls: 'src-anth' },
+  'anthropic.com':                         { label: 'Anthropic', cls: 'src-anth' },
+  'the-decoder.com':                       { label: 'Decoder', cls: 'src-dec' },
+};
+
+function getSrcBadge(source) {
+  const s = (source || '').toLowerCase();
+  for (const [key, val] of Object.entries(SRC_BADGE)) {
+    if (s === key || s.endsWith('.' + key) || s.includes(key)) return val;
+  }
+  // Fallback: use short domain
+  const short = s.replace(/^www\./, '').split('.')[0];
+  return { label: short || s, cls: 'src-other' };
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadEngine();
+  await loadArticles(1);
+});
+
+async function loadEngine() {
+  try {
+    const data = await apiFetch('/api/engine');
+    const badge = document.getElementById('engine-badge');
+    if (data.engine === 'claude') {
+      badge.textContent = 'Claude';
+      badge.className = 'engine-claude';
+    } else {
+      badge.textContent = 'Ollama';
+      badge.className = 'engine-ollama';
+    }
+  } catch { }
+}
+
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleString('ja-JP', { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  } catch { return ''; }
+}
+
+function showStatus(msg, type = 'info') {
+  const bar = document.getElementById('status-bar');
+  bar.innerHTML = '';
+  const span = document.createElement('span');
+  span.className = `s-${type}`;
+  // スピナー付きメッセージ（'<span class="spinner">'を含む場合）は innerHTML で処理
+  if (msg.includes('<span')) {
+    span.innerHTML = msg;
+  } else {
+    span.textContent = msg;
+  }
+  bar.appendChild(span);
+}
+function clearStatus() { document.getElementById('status-bar').innerHTML = ''; }
+
+async function apiFetch(path, options = {}) {
+  const res = await fetch(path, { headers: { 'Content-Type': 'application/json' }, ...options });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+async function updateCount() {
+  try {
+    const data = await apiFetch('/api/count');
+    document.getElementById('article-count').textContent = `${data.count} 件`;
+  } catch { }
+}
+
+function toggleSource(src) {
+  if (src === '') {
+    selectedSources.clear();
+  } else {
+    if (selectedSources.has(src)) selectedSources.delete(src);
+    else selectedSources.add(src);
+  }
+  document.querySelectorAll('.chip[data-src]').forEach(chip => {
+    const s = chip.dataset.src;
+    chip.classList.toggle('active', s === '' ? selectedSources.size === 0 : selectedSources.has(s));
+  });
+  loadArticles(1);
+}
+
+function toggleGenre(g) {
+  if (g === '') {
+    selectedGenres.clear();
+  } else {
+    if (selectedGenres.has(g)) selectedGenres.delete(g);
+    else selectedGenres.add(g);
+  }
+  document.querySelectorAll('[data-genre]').forEach(chip => {
+    const v = chip.dataset.genre;
+    chip.classList.toggle('active', v === '' ? selectedGenres.size === 0 : selectedGenres.has(v));
+  });
+  loadArticles(1);
+}
+
+function toggleFavoriteFilter() {
+  favoriteOnly = !favoriteOnly;
+  document.getElementById('chip-fav').classList.toggle('active', favoriteOnly);
+  loadArticles(1);
+}
+
+function toggleUnreadFilter() {
+  unreadOnly = !unreadOnly;
+  document.getElementById('chip-unread').classList.toggle('active', unreadOnly);
+  loadArticles(1);
+}
+
+async function _classifyCore() {
+  showStatus('<span class="spinner"></span>ジャンルを分類しています...', 'info');
+  const r = await apiFetch('/api/classify-all', { method: 'POST' });
+  showStatus(`${r.classified}件を分類しました`, 'ok');
+}
+
+async function classifyAll() {
+  const btn = document.getElementById('btn-classify-all');
+  btn.disabled = true; btn.textContent = '分類中...';
+  try {
+    await _classifyCore();
+    await loadArticles(1);
+  } catch (e) {
+    showStatus(`分類エラー: ${esc(e.message)}`, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '🏷 全ジャンル分類';
+  }
+}
+
+function buildFilterParams() {
+  const search = document.getElementById('search-input').value.trim();
+  const params = new URLSearchParams();
+  if (search) params.set('search', search);
+  selectedSources.forEach(s => params.append('source', s));
+  selectedGenres.forEach(g => params.append('genre', g));
+  if (favoriteOnly) params.set('favorite_only', 'true');
+  if (unreadOnly)   params.set('unread_only', 'true');
+  return params;
+}
+
+function buildParams(page = 1) {
+  const params = buildFilterParams();
+  params.set('limit', String(PAGE_SIZE));
+  params.set('offset', String((page - 1) * PAGE_SIZE));
+  return params;
+}
+
+async function loadArticles(page = null) {
+  if (page !== null) currentPage = page;
+  showStatus('<span class="spinner"></span>読み込み中...', 'info');
+  try {
+    const filterParams = buildFilterParams();
+    const [articles, countData] = await Promise.all([
+      apiFetch(`/api/articles?${buildParams(currentPage)}`),
+      apiFetch(`/api/count?${filterParams}`),
+    ]);
+    renderArticles(articles);
+    const total = countData.count || 0;
+    totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    document.getElementById('article-count').textContent = `${total} 件`;
+    renderPagination();
+    clearStatus();
+  } catch (e) {
+    showStatus(`エラー: ${esc(e.message)}`, 'error');
+  }
+}
+
+function renderPagination() {
+  const el = document.getElementById('pagination');
+  if (totalPages <= 1) { el.style.display = 'none'; return; }
+  el.style.display = 'flex';
+
+  const pages = [];
+  // 常に表示: 1, totalPages, currentPage ±2
+  const show = new Set([1, totalPages]);
+  for (let p = Math.max(1, currentPage - 2); p <= Math.min(totalPages, currentPage + 2); p++) show.add(p);
+  const sorted = [...show].sort((a, b) => a - b);
+
+  let html = `<button class="btn-page" ${currentPage === 1 ? 'disabled' : ''} onclick="loadArticles(${currentPage - 1})">←</button>`;
+  let prev = 0;
+  for (const p of sorted) {
+    if (p - prev > 1) html += `<span class="page-ellipsis">…</span>`;
+    html += `<button class="btn-page${p === currentPage ? ' active' : ''}" ${p === currentPage ? 'disabled' : ''} onclick="loadArticles(${p})">${p}</button>`;
+    prev = p;
+  }
+  html += `<button class="btn-page" ${currentPage === totalPages ? 'disabled' : ''} onclick="loadArticles(${currentPage + 1})">→</button>`;
+  el.innerHTML = html;
+}
+
+function getDateKey(a) {
+  const iso = a.published_at || a.fetched_at;
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+  } catch { return ''; }
+}
+
+function buildSingleCard(a) {
+  const hasSummary = !!a.summary_ja;
+  const pub  = a.published_at ? formatDate(a.published_at) : (a.fetched_at ? formatDate(a.fetched_at) : '');
+  const src  = a.source || '';
+  const displayTitle = a.title_ja || a.title;
+  const showOrig = !!a.title_ja && a.title_ja !== a.title;
+  const genreInfo = a.genre ? (GENRE_INFO[a.genre] || null) : null;
+  const isFav  = !!a.is_favorite;
+  const isRead = !!a.is_read;
+  const badge  = getSrcBadge(src);
+  let classes  = 'card';
+  if (isFav)  classes += ' is-favorite';
+  if (isRead) classes += ' is-read';
+
+  return `
+  <div class="${classes}" id="card-${a.id}" data-genre="${esc(a.genre || '')}">
+    <div class="card-top">
+      <button class="btn-fav${isFav ? ' active' : ''}" id="fav-btn-${a.id}" onclick="toggleFavorite(${a.id})" title="お気に入り">${isFav ? '★' : '☆'}</button>
+      <div class="card-body">
+        <div class="card-title-row">
+          <a class="card-title" href="${esc(a.url)}" target="_blank" rel="noopener noreferrer" onclick="markRead(${a.id})">${esc(displayTitle)}</a>
+          ${isRead ? `<span class="read-check" id="read-check-${a.id}">✓ 既読</span>` : `<span class="read-check" id="read-check-${a.id}" style="display:none">✓ 既読</span>`}
+          ${genreInfo ? `<span class="genre-badge" title="${esc(genreInfo.label)}">${genreInfo.emoji}</span>` : ''}
+          <span class="src-badge ${badge.cls}">${esc(badge.label)}</span>
+          ${pub ? `<span class="card-date">${pub}</span>` : ''}
+        </div>
+        ${showOrig ? `<div class="card-orig" id="orig-${a.id}">${esc(a.title)}</div>` : `<div class="card-orig" id="orig-${a.id}" style="display:none"></div>`}
+      </div>
+      <div class="card-actions">
+        <button class="btn-sum" id="sum-btn-${a.id}" onclick="handleSummarize(${a.id})">${hasSummary ? '▴' : '要約'}</button>
+        ${hasSummary ? `<button class="btn-regen" id="regen-btn-${a.id}" onclick="regenSummary(${a.id})" title="再生成">↺</button>` : ''}
+        <button class="btn-del" onclick="deleteArticle(${a.id})">✕</button>
+      </div>
+    </div>
+    <div class="summary-wrap${hasSummary ? ' open' : ''}" id="summary-wrap-${a.id}" data-has-summary="${hasSummary}">
+      <div id="summary-${a.id}">${hasSummary ? renderSummary(a.summary_ja) : ''}</div>
+    </div>
+  </div>`;
+}
+
+function buildGroupedCards(articles, prevDateKey) {
+  let html = '';
+  let currentDateKey = prevDateKey;
+  for (const a of articles) {
+    const dateKey = getDateKey(a);
+    if (dateKey && dateKey !== currentDateKey) {
+      html += `<div class="date-sep">${esc(dateKey)}</div>`;
+      currentDateKey = dateKey;
+    }
+    html += buildSingleCard(a);
+  }
+  return { html, lastDateKey: currentDateKey };
+}
+
+function renderArticles(articles) {
+  const list = document.getElementById('article-list');
+  if (articles.length === 0) {
+    lastRenderedDate = null;
+    list.innerHTML = `<div class="empty-state"><p>記事がありません</p><small>RSS取得ボタンでニュースを取得してください。</small></div>`;
+    return;
+  }
+  const { html, lastDateKey } = buildGroupedCards(articles, null);
+  lastRenderedDate = lastDateKey;
+  list.innerHTML = html;
+}
+
+function appendArticles(articles) {
+  if (articles.length === 0) return;
+  const { html, lastDateKey } = buildGroupedCards(articles, lastRenderedDate);
+  lastRenderedDate = lastDateKey;
+  document.getElementById('article-list').insertAdjacentHTML('beforeend', html);
+}
+
+function renderSummary(text) {
+  // collapse consecutive blank lines, then convert newlines to <br>
+  const html = esc(text)
+    .replace(/\n{2,}/g, '\n')
+    .replace(/\n/g, '<br>');
+  return `<div class="summary-block">${html}</div>`;
+}
+
+async function toggleFavorite(id) {
+  try {
+    const r = await apiFetch(`/api/articles/${id}/favorite`, { method: 'POST' });
+    const isFav = !!r.is_favorite;
+    const card = document.getElementById(`card-${id}`);
+    const btn  = document.getElementById(`fav-btn-${id}`);
+    if (card) card.classList.toggle('is-favorite', isFav);
+    if (btn)  { btn.textContent = isFav ? '★' : '☆'; btn.classList.toggle('active', isFav); }
+    if (favoriteOnly && !isFav) {
+      card.style.transition = 'opacity 0.15s';
+      card.style.opacity = '0';
+      setTimeout(() => card.remove(), 150);
+    }
+  } catch (e) {
+    showStatus(`エラー: ${esc(e.message)}`, 'error');
+  }
+}
+
+function handleSummarize(id) {
+  const wrap = document.getElementById(`summary-wrap-${id}`);
+  const btn  = document.getElementById(`sum-btn-${id}`);
+  if (wrap.dataset.hasSummary !== 'true') {
+    summarizeArticle(id);
+    return;
+  }
+  const isOpen = wrap.classList.contains('open');
+  wrap.classList.toggle('open');
+  btn.textContent = isOpen ? '▾' : '▴';
+}
+
+function markRead(id) {
+  const card = document.getElementById(`card-${id}`);
+  if (card && !card.classList.contains('is-read')) {
+    card.classList.add('is-read');
+    const badge = document.getElementById(`read-check-${id}`);
+    if (badge) badge.style.display = '';
+    fetch(`/api/articles/${id}/read`, { method: 'POST' }).catch(() => {});
+  }
+}
+
+function regenSummary(id) { summarizeArticle(id, true); }
+
+async function fetchRSS() {
+  const btn = document.getElementById('btn-fetch-rss');
+  btn.disabled = true; btn.textContent = '取得中...';
+  showStatus('<span class="spinner"></span>RSSフィードを取得中...', 'info');
+  try {
+    const resp = await fetch('/api/fetch-rss/stream', { method: 'POST' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = JSON.parse(line.slice(6));
+        if (data.status === 'fetching') {
+          showStatus(`<span class="spinner"></span>${esc(data.source)} を取得中...`, 'info');
+        } else if (data.status === 'done') {
+          showStatus(`<span class="spinner"></span>${esc(data.source)}: +${data.added}件`, 'info');
+        } else if (data.status === 'error') {
+          showStatus(`<span class="spinner"></span>${esc(data.source)}: エラー`, 'error');
+        }
+        if (data.done) {
+          const fetchMsg = `RSS: ${data.total_added}件追加 / ${data.total_skipped}件重複 / ${data.total_failed}件エラー`;
+          showStatus(fetchMsg, data.total_failed > 0 ? 'error' : 'ok');
+          await loadArticles(1);
+          if (data.total_added > 0) {
+            const translateBtn = document.getElementById('btn-translate-all');
+            const classifyBtn  = document.getElementById('btn-classify-all');
+            translateBtn.disabled = true; translateBtn.textContent = '翻訳中...';
+            classifyBtn.disabled  = true; classifyBtn.textContent  = '分類中...';
+            try {
+              await _translateCore();
+              await _classifyCore();
+              await loadArticles(1);
+            } catch (e) {
+              showStatus(`自動処理エラー: ${esc(e.message)}`, 'error');
+            } finally {
+              translateBtn.disabled = false; translateBtn.textContent = '📝 全タイトル翻訳';
+              classifyBtn.disabled  = false; classifyBtn.textContent  = '🏷 全ジャンル分類';
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    showStatus(`エラー: ${esc(e.message)}`, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔄 RSS取得';
+  }
+}
+
+async function addURL() {
+  const input = document.getElementById('url-input');
+  const url = input.value.trim();
+  if (!url) { showStatus('URLを入力してください', 'error'); return; }
+  showStatus('<span class="spinner"></span>URLを取得しています...', 'info');
+  try {
+    await apiFetch('/api/add-url', { method: 'POST', body: JSON.stringify({ url }) });
+    input.value = '';
+    showStatus('記事を追加しました', 'ok');
+    await loadArticles(1);
+  } catch (e) {
+    showStatus(`エラー: ${esc(e.message)}`, 'error');
+  }
+}
+
+async function summarizeArticle(id, forceRegen = false) {
+  const btn      = document.getElementById(`sum-btn-${id}`);
+  const regenBtn = document.getElementById(`regen-btn-${id}`);
+  const wrap     = document.getElementById(`summary-wrap-${id}`);
+  const summaryDiv = document.getElementById(`summary-${id}`);
+
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  if (regenBtn) regenBtn.disabled = true;
+  showStatus('<span class="spinner"></span>要約生成中...', 'info');
+
+  wrap.classList.add('open');
+  summaryDiv.innerHTML = `<div class="summary-block"><span id="stream-text-${id}"></span><span class="stream-cursor"></span></div>`;
+
+  try {
+    const resp = await fetch(`/api/articles/${id}/summarize/stream`, { method: 'POST' });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+      throw new Error(err.detail || `HTTP ${resp.status}`);
+    }
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    const streamEl = document.getElementById(`stream-text-${id}`);
+    let buffer = '';
+    let streamedText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = JSON.parse(line.slice(6));
+        if (data.token && streamEl) {
+          streamedText += data.token;
+          streamEl.innerHTML = esc(streamedText).replace(/\n{2,}/g, '\n').replace(/\n/g, '<br>');
+        }
+        if (data.done) {
+          summaryDiv.innerHTML = renderSummary(data.summary);
+          wrap.dataset.hasSummary = 'true';
+          // Insert regen button if not already present
+          const actions = document.querySelector(`#card-${id} .card-actions`);
+          if (actions && !document.getElementById(`regen-btn-${id}`)) {
+            const delBtn = actions.querySelector('.btn-del');
+            delBtn.insertAdjacentHTML('beforebegin', `<button class="btn-regen" id="regen-btn-${id}" onclick="regenSummary(${id})" title="再生成">↺</button>`);
+          }
+          if (btn) { btn.textContent = '▴'; }
+          clearStatus();
+        }
+        if (data.error) throw new Error(data.error);
+      }
+    }
+  } catch (e) {
+    summaryDiv.innerHTML = '';
+    wrap.classList.remove('open');
+    showStatus(`要約エラー: ${esc(e.message)}`, 'error');
+    if (btn) btn.textContent = wrap.dataset.hasSummary === 'true' ? '▾' : '要約';
+  } finally {
+    if (btn) btn.disabled = false;
+    const rb = document.getElementById(`regen-btn-${id}`);
+    if (rb) rb.disabled = false;
+  }
+}
+
+async function deleteArticle(id) {
+  if (!confirm('削除しますか？')) return;
+  try {
+    await apiFetch(`/api/articles/${id}`, { method: 'DELETE' });
+    const card = document.getElementById(`card-${id}`);
+    card.style.transition = 'opacity 0.15s';
+    card.style.opacity = '0';
+    setTimeout(() => { card.remove(); updateCount(); }, 150);
+    showStatus('削除しました', 'ok');
+  } catch (e) {
+    showStatus(`削除エラー: ${esc(e.message)}`, 'error');
+  }
+}
+
+async function _translateCore() {
+  showStatus('<span class="spinner"></span>タイトルを翻訳しています...', 'info');
+  let count = 0;
+  const resp = await fetch('/api/translate-titles/stream', { method: 'POST' });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const reader  = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop();
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const data = JSON.parse(line.slice(6));
+      if (data.id && data.title_ja) {
+        const titleEl = document.querySelector(`#card-${data.id} .card-title`);
+        const origEl  = document.getElementById(`orig-${data.id}`);
+        if (titleEl) {
+          const prevText = titleEl.textContent;
+          titleEl.textContent = data.title_ja;
+          if (origEl && data.title_ja !== prevText) {
+            origEl.textContent = prevText;
+            origEl.style.display = '';
+          }
+        }
+        count++;
+        showStatus(`<span class="spinner"></span>翻訳中... ${count}件完了`, 'info');
+      }
+      if (data.error) {
+        showStatus(`翻訳エラー: ${esc(data.error.slice(0, 120))}`, 'error');
+        return;
+      }
+      if (data.done) {
+        if (data.count === 0) {
+          showStatus('翻訳対象の記事がありません（既に全て翻訳済みか、エラーが発生しました）', 'info');
+        } else {
+          showStatus(`${data.count}件のタイトルを翻訳しました`, 'ok');
+        }
+      }
+    }
+  }
+}
+
+async function translateAllTitles() {
+  const btn = document.getElementById('btn-translate-all');
+  btn.disabled = true; btn.textContent = '翻訳中...';
+  try {
+    await _translateCore();
+  } catch (e) {
+    showStatus(`翻訳エラー: ${esc(e.message)}`, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '📝 全タイトル翻訳';
+  }
+}
+
+function scheduleSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => loadArticles(1), 400);
+}
+
+// ── Digest ────────────────────────────────────────────────────────────────
+
+async function toggleDigest() {
+  const panel = document.getElementById('digest-panel');
+  if (digestOpen) { closeDigest(); return; }
+  digestOpen = true;
+  panel.classList.add('open');
+  const btn = document.getElementById('btn-digest');
+  btn.disabled = true;
+
+  const textEl = document.getElementById('digest-text');
+  textEl.innerHTML = '<span class="spinner"></span>生成中...';
+
+  try {
+    const resp = await fetch('/api/digest/stream', { method: 'POST' });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '', generated = '';
+    textEl.innerHTML = '<span id="digest-stream"></span><span class="stream-cursor"></span>';
+    const streamEl = document.getElementById('digest-stream');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = JSON.parse(line.slice(6));
+        if (data.token) { generated += data.token; if (streamEl) streamEl.textContent = generated; }
+        if (data.done)  { textEl.textContent = generated; }
+        if (data.error) throw new Error(data.error);
+      }
+    }
+  } catch (e) {
+    textEl.textContent = `エラー: ${e.message}`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function closeDigest() {
+  digestOpen = false;
+  document.getElementById('digest-panel').classList.remove('open');
+}
+
+// ── Source Management ─────────────────────────────────────────────────────
+
+async function openSourceModal() {
+  document.getElementById('source-modal').classList.add('open');
+  await renderSourceList();
+}
+
+function closeSourceModal() {
+  document.getElementById('source-modal').classList.remove('open');
+}
+
+async function renderSourceList() {
+  const container = document.getElementById('source-list');
+  container.innerHTML = '<div style="color:#555;font-size:0.8rem">読み込み中...</div>';
+  try {
+    const sources = await apiFetch('/api/sources');
+    if (sources.length === 0) {
+      container.innerHTML = '<div style="color:#555;font-size:0.8rem">ソースがありません</div>';
+      return;
+    }
+    container.innerHTML = sources.map(s => `
+      <div class="source-item" id="source-item-${s.id}">
+        <div style="flex:1;min-width:0">
+          <div class="source-name">${esc(s.name)}</div>
+          <div class="source-url" title="${esc(s.url)}">${esc(s.url)}</div>
+        </div>
+        <label class="toggle-switch" title="${s.is_active ? '無効にする' : '有効にする'}">
+          <input type="checkbox" ${s.is_active ? 'checked' : ''} onchange="toggleRssSource(${s.id})">
+          <span class="toggle-slider"></span>
+        </label>
+        <button class="btn-del" onclick="deleteRssSource(${s.id})" title="削除">✕</button>
+      </div>
+    `).join('');
+  } catch (e) {
+    container.innerHTML = `<div style="color:#cc4444;font-size:0.8rem">エラー: ${esc(e.message)}</div>`;
+  }
+}
+
+async function toggleRssSource(id) {
+  try {
+    await apiFetch(`/api/sources/${id}/toggle`, { method: 'PATCH' });
+  } catch (e) {
+    showSourceStatus(`エラー: ${esc(e.message)}`, true);
+    await renderSourceList();
+  }
+}
+
+async function deleteRssSource(id) {
+  if (!confirm('このソースを削除しますか？')) return;
+  try {
+    await apiFetch(`/api/sources/${id}`, { method: 'DELETE' });
+    document.getElementById(`source-item-${id}`)?.remove();
+    showSourceStatus('削除しました');
+  } catch (e) {
+    showSourceStatus(`エラー: ${esc(e.message)}`, true);
+  }
+}
+
+async function addSource() {
+  const name = document.getElementById('new-source-name').value.trim();
+  const url  = document.getElementById('new-source-url').value.trim();
+  if (!name || !url) { showSourceStatus('名前とURLを入力してください', true); return; }
+  try {
+    await apiFetch('/api/sources', { method: 'POST', body: JSON.stringify({ name, url }) });
+    document.getElementById('new-source-name').value = '';
+    document.getElementById('new-source-url').value = '';
+    showSourceStatus('追加しました');
+    await renderSourceList();
+  } catch (e) {
+    showSourceStatus(`エラー: ${esc(e.message)}`, true);
+  }
+}
+
+function showSourceStatus(msg, isError = false) {
+  const el = document.getElementById('source-modal-status');
+  el.style.color = isError ? '#cc4444' : '#4aaa4a';
+  el.textContent = msg;
+  setTimeout(() => { el.textContent = ''; }, 3000);
+}
+</script>
+</body>
+</html>

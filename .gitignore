@@ -1,0 +1,19 @@
+# Database
+news.sqlite
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+
+# Screenshots (test artifacts)
+screenshot*.png
+
+# Playwright
+.playwright/
+.playwright-cli/
+
+# Claude Code local config
+.claude/

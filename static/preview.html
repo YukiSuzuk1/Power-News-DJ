@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI ニュース DJ — デザインプレビュー</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: #0d0f18;
+      color: #d0d0e0;
+      line-height: 1.5;
+      min-height: 100vh;
+      font-size: 13px;
+    }
+
+    /* ── Header ── */
+    header {
+      background: #111420;
+      border-bottom: 1px solid #1e2130;
+      padding: 0.5rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-left { display: flex; align-items: center; gap: 0.7rem; }
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6e8efb, #a777e3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .engine-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.18rem 0.55rem;
+      border-radius: 10px;
+      background: #162a1e;
+      color: #5acf8a;
+      border: 1px solid #1e4a2a;
+    }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .article-count { font-size: 0.75rem; color: #4a4a6a; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      background: #111420;
+      padding: 0.4rem 1.2rem;
+      border-bottom: 1px solid #1e2130;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .toolbar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .toolbar-sep {
+      width: 1px;
+      height: 18px;
+      background: #252840;
+      flex-shrink: 0;
+      margin: 0 0.15rem;
+    }
+    .toolbar-spacer { flex: 1; }
+
+    /* ── Buttons ── */
+    .btn {
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 0.3rem 0.7rem;
+      border-radius: 5px;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, #4a6cf7, #7a4af7);
+      color: #fff;
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, #5a7cf9, #8a5af9); }
+    .btn-secondary {
+      background: #1a1d30;
+      color: #9090b8;
+      border: 1px solid #252840;
+    }
+    .btn-secondary:hover { background: #20243a; color: #b0b0d0; border-color: #3a3d60; }
+    .btn-ghost {
+      background: transparent;
+      color: #7070a0;
+      border: 1px solid #252840;
+    }
+    .btn-ghost:hover { background: #181a2c; color: #a0a0c8; }
+
+    .url-input {
+      flex: 1;
+      max-width: 280px;
+      background: #0d0f1c;
+      border: 1px solid #252840;
+      border-radius: 5px;
+      color: #c0c0d8;
+      font-size: 0.75rem;
+      padding: 0.28rem 0.6rem;
+      outline: none;
+    }
+    .url-input:focus { border-color: #4a6cf7; }
+    .url-input::placeholder { color: #3a3a5a; }
+
+    /* ── Filter bar ── */
+    .filter-bar {
+      background: #0d0f1c;
+      padding: 0.4rem 1.2rem;
+      border-bottom: 1px solid #1e2130;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .search-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .search-icon {
+      position: absolute;
+      left: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #3a3a5a;
+      font-size: 0.8rem;
+      pointer-events: none;
+    }
+    .search-input {
+      background: #111420;
+      border: 1px solid #252840;
+      border-radius: 6px;
+      color: #c0c0d8;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.7rem 0.3rem 1.8rem;
+      width: 180px;
+      outline: none;
+    }
+    .search-input:focus { border-color: #4a6cf7; }
+    .search-input::placeholder { color: #3a3a5a; }
+
+    .filter-scroll {
+      display: flex;
+      gap: 0.3rem;
+      overflow-x: auto;
+      flex: 1;
+      scrollbar-width: none;
+      align-items: center;
+      padding: 0.05rem 0;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    .filter-sep {
+      width: 1px;
+      height: 16px;
+      background: #252840;
+      flex-shrink: 0;
+    }
+
+    .chip {
+      font-size: 0.68rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      background: #151828;
+      color: #6060a0;
+      user-select: none;
+    }
+    .chip:hover { background: #1a1d30; color: #8080b8; }
+    .chip.active {
+      background: #1a2252;
+      color: #7a9ef8;
+      border-color: #2a3a7a;
+    }
+    .chip-fav { color: #7a6a30; background: #1a1600; border-color: #2a2200; }
+    .chip-fav.active { background: #2a2000; color: #e8c000; border-color: #5a4400; box-shadow: 0 0 8px #e8c00033; }
+
+    .btn-refresh {
+      font-size: 0.72rem;
+      padding: 0.22rem 0.6rem;
+      border-radius: 5px;
+      background: #151828;
+      color: #6060a0;
+      border: 1px solid #252840;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .btn-refresh:hover { background: #1a1d30; color: #9090c0; }
+
+    /* ── Article list ── */
+    .article-list {
+      padding: 0.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    /* ── Article card ── */
+    .card {
+      background: #131627;
+      border: 1px solid #1e2235;
+      border-radius: 6px;
+      padding: 0.45rem 0.9rem;
+      transition: transform 0.12s, border-color 0.2s, box-shadow 0.2s;
+      cursor: default;
+    }
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: #2a3868;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    }
+    .card.is-favorite {
+      background: #151400;
+      border-color: #3a3000;
+    }
+    .card.is-favorite:hover {
+      border-color: #5a4800;
+      box-shadow: 0 4px 18px rgba(200, 160, 0, 0.1);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    /* Star button — left of title */
+    .btn-fav {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.05rem;
+      color: #3a3a5a;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 1px;
+      transition: color 0.15s, transform 0.1s;
+    }
+    .btn-fav:hover { color: #e8d060; transform: scale(1.2); }
+    .btn-fav.active { color: #e8c000; }
+
+    .card-body { flex: 1; min-width: 0; }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #c8cde8;
+      text-decoration: none;
+      line-height: 1.45;
+      display: block;
+    }
+    .card-title:hover { color: #8aabff; }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 0.2rem;
+      flex-wrap: wrap;
+    }
+
+    /* Source color badges */
+    .src-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 0.08rem 0.42rem;
+      border-radius: 4px;
+      letter-spacing: 0.02em;
+    }
+    .src-tc    { background: #0d2a5a; color: #6aabff; }
+    .src-vb    { background: #0d3a1a; color: #5acf7a; }
+    .src-ai    { background: #2a0d4a; color: #b07af8; }
+    .src-reddit{ background: #3a1a00; color: #ff7a3a; }
+    .src-hn    { background: #3a1a00; color: #ff9a3a; }
+    .src-openai{ background: #0d2a2a; color: #4acfcf; }
+    .src-google{ background: #1a1a3a; color: #7a8aff; }
+    .src-anth  { background: #1a0a3a; color: #c07af8; }
+    .src-dec   { background: #0a2a2a; color: #3acfcf; }
+    .src-other { background: #1a1a2a; color: #7a7a9a; }
+
+    .card-date { font-size: 0.68rem; color: #3a3a5a; }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+    .btn-sum {
+      font-size: 0.7rem;
+      padding: 0.18rem 0.5rem;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid #4a3fdf55;
+      color: #7a6adf;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-sum:hover { background: #7a6adf22; border-color: #7a6adf88; }
+    .btn-del {
+      font-size: 0.72rem;
+      padding: 0.18rem 0.4rem;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: #3a3a5a;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-del:hover { color: #e05555; border-color: #e0555533; background: #e0555511; }
+
+    /* ── Summary panel ── */
+    .summary-box {
+      margin-top: 0.45rem;
+      padding: 0.45rem 0.75rem;
+      background: #0e1020;
+      border-left: 3px solid #5a4af0;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.78rem;
+      color: #b0b0d0;
+      line-height: 1.7;
+    }
+    .summary-box strong { color: #9a8af8; font-weight: 600; }
+
+    /* ── Genre badge on card ── */
+    .genre-badge {
+      font-size: 0.75rem;
+    }
+
+    /* ── Note banner ── */
+    .preview-note {
+      background: #1a1040;
+      border: 1px solid #3a2880;
+      color: #9a80e8;
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 0.4rem 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="preview-note">🎨 デザインプレビュー（実装前のイメージ確認用） — データはダミーです</div>
+
+<!-- Header -->
+<header>
+  <div class="header-left">
+    <h1>AI ニュース DJ</h1>
+    <span class="engine-badge">Ollama</span>
+  </div>
+  <div class="header-right">
+    <span class="article-count">528 件</span>
+  </div>
+</header>
+
+<!-- Toolbar (2 rows) -->
+<div class="toolbar">
+  <!-- Row 1: 取得・追加 -->
+  <div class="toolbar-row">
+    <button class="btn btn-primary">🔄 RSS取得</button>
+    <span class="toolbar-sep"></span>
+    <span style="font-size:0.72rem; color:#3a3a5a; flex-shrink:0;">URL:</span>
+    <input class="url-input" type="text" placeholder="https://example.com/feed または記事URL">
+    <button class="btn btn-secondary">追加</button>
+  </div>
+  <!-- Row 2: AI処理 + 設定 -->
+  <div class="toolbar-row">
+    <button class="btn btn-ghost">📝 全タイトル翻訳</button>
+    <button class="btn btn-ghost">🏷 全ジャンル分類</button>
+    <span class="toolbar-spacer"></span>
+    <button class="btn btn-ghost">📰 ダイジェスト</button>
+    <button class="btn btn-ghost">⚙️ ソース管理</button>
+  </div>
+</div>
+
+<!-- Filter bar (1 row) -->
+<div class="filter-bar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" type="text" placeholder="キーワード...">
+  </div>
+  <div class="filter-scroll">
+    <span class="chip active">すべて</span>
+    <span class="chip">TechCrunch</span>
+    <span class="chip">VentureBeat</span>
+    <span class="chip">AI News</span>
+    <span class="chip">Reddit</span>
+    <span class="chip">HN</span>
+    <span class="chip">OpenAI</span>
+    <span class="chip">Google</span>
+    <span class="chip">Anthropic</span>
+    <span class="chip">Decoder</span>
+    <span class="filter-sep"></span>
+    <span class="chip active">全ジャンル</span>
+    <span class="chip">🔬 研究</span>
+    <span class="chip">🛠️ 開発</span>
+    <span class="chip">💼 ビジネス</span>
+    <span class="chip">🌍 社会・倫理</span>
+    <span class="chip">💡 作ってみた</span>
+    <span class="filter-sep"></span>
+    <span class="chip chip-fav active">⭐ お気に入り</span>
+  </div>
+  <button class="btn-refresh">更新</button>
+</div>
+
+<!-- Article List -->
+<div class="article-list">
+
+  <!-- Card 1: Favorited + Summary expanded -->
+  <div class="card is-favorite">
+    <div class="card-top">
+      <button class="btn-fav active">★</button>
+      <div class="card-body">
+        <a class="card-title" href="#">ショウ・エイチ・エヌ：WTF-CLI – ラストで書かれたAIを搭載したターミナルエラー解決ツール</a>
+        <div class="card-meta">
+          <span class="genre-badge">💡</span>
+          <span class="src-badge src-hn">HN</span>
+          <span class="card-date">03/07 08:46</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-sum">▴ 要約</button>
+        <button class="btn-del">✕</button>
+      </div>
+    </div>
+    <div class="summary-box">
+      <strong>【概要】</strong><br>
+      Rustで実装されたCLIツール「WTF-CLI」は、AIを活用してターミナルのエラーメッセージを自動解析し、解決策を提示する。<br>
+      <strong>【ポイント】</strong><br>
+      • ターミナルエラーをAIがリアルタイムで解析・説明<br>
+      • Rustによる高速・軽量な実装<br>
+      • ローカルLLM（Ollama）にも対応
+    </div>
+  </div>
+
+  <!-- Card 2: Normal -->
+  <div class="card">
+    <div class="card-top">
+      <button class="btn-fav">☆</button>
+      <div class="card-body">
+        <a class="card-title" href="#">WebSocket＋ハフマン符号化とSSE＋JSONによるストリーミングLLMトークンの比較</a>
+        <div class="card-meta">
+          <span class="genre-badge">🛠️</span>
+          <span class="src-badge src-hn">HN</span>
+          <span class="card-date">03/07 08:47</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-sum">要約</button>
+        <button class="btn-del">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 3: TechCrunch -->
+  <div class="card">
+    <div class="card-top">
+      <button class="btn-fav">☆</button>
+      <div class="card-body">
+        <a class="card-title" href="#">OpenAIがo3-miniの次世代モデル「o4」を発表、推論能力が大幅に向上</a>
+        <div class="card-meta">
+          <span class="genre-badge">🔬</span>
+          <span class="src-badge src-tc">TechCrunch</span>
+          <span class="card-date">03/07 09:12</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-sum">要約</button>
+        <button class="btn-del">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 4: VentureBeat -->
+  <div class="card">
+    <div class="card-top">
+      <button class="btn-fav">☆</button>
+      <div class="card-body">
+        <a class="card-title" href="#">Anthropicが新しいClaude 4モデルファミリーを公開、エンタープライズ向けに最適化</a>
+        <div class="card-meta">
+          <span class="genre-badge">💼</span>
+          <span class="src-badge src-vb">VentureBeat</span>
+          <span class="card-date">03/07 10:05</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-sum">要約</button>
+        <button class="btn-del">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 5: Anthropic -->
+  <div class="card">
+    <div class="card-top">
+      <button class="btn-fav">☆</button>
+      <div class="card-body">
+        <a class="card-title" href="#">Claude's new extended thinking feature improves complex reasoning by 40%</a>
+        <div class="card-meta">
+          <span class="genre-badge">🔬</span>
+          <span class="src-badge src-anth">Anthropic</span>
+          <span class="card-date">03/07 11:30</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-sum">要約</button>
+        <button class="btn-del">✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 6: Reddit -->
+  <div class="card">
+    <div class="card-top">
+      <button class="btn-fav">☆</button>
+      <div class="card-body">
+        <a class="card-title" href="#">自己進化するAIスキルのためのガバナンスパターン</a>
+        <div class="card-meta">
+          <span class="genre-badge">🌍</span>
+          <span class="src-badge src-reddit">Reddit</span>
+          <span class="card-date">03/07 08:50</span>
+        </div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-sum">要約</button>
+        <button class="btn-del">✕</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
