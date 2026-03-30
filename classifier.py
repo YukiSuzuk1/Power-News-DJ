@@ -8,238 +8,240 @@ from typing import Optional
 # ── ジャンル定義 ────────────────────────────────────────────────────────────
 
 GENRES: dict = {
-    "research": {
-        "label": "モデル・研究",
-        "emoji": "🔬",
+    "storage_tech": {
+        "label": "蓄電技術",
+        "emoji": "🔋",
         "border": "#6e8efb",
         "keywords": [
-            # モデル名
-            "gpt-", "gpt4", "gpt 4", "gpt3", "gpt 3",
-            "o1 ", "o3 ", "o4 ", "o1-", "o3-",
-            "claude", "gemini", "llama", "mistral", "phi-", "phi ",
-            "qwen", "deepseek", "grok", "command r", "mixtral",
-            "falcon", "yi-", "solar ", "aya ", "jamba", "dbrx",
-            "stable diffusion", "midjourney", "dall-e", "sora ", "flux ",
-            "whisper", "wav2vec", "firefly", "imagen", "parti",
-            "moonshot", "kimi ", "step-", "hunyuan", "ernie",
-            "copilot ", "codegemma", "codellama", "starcoder",
-            # パラメータサイズ
-            "0.5b", "1b ", "1.5b", "3b ", "7b ", "8b ", "13b",
-            "14b", "32b", "34b", "70b", "72b", "90b", "123b", "405b",
-            # 研究・学習用語
-            "benchmark", "arxiv", "preprint", "paper ", "research ",
-            "dataset", "training run", "fine-tun", "finetuning",
-            "pre-training", "pretraining", "post-training",
-            "rlhf", "dpo ", "grpo", "ppo ", "sft ", "rft ",
-            "alignment ", "reasoning ", "inference time",
-            "chain of thought", "cot ", "tree of thought",
-            "multimodal", "vision model", "language model",
-            "large language", "foundation model", "base model",
-            "parameter", "context window", "context length",
-            "attention ", "transformer", "diffusion model",
-            "accuracy ", "evaluation ", " eval ", "leaderboard",
-            "agi ", "superintelligence", "capability",
-            "weights", "checkpoint", "quantiz", "gguf", "ggml",
-            "4-bit", "8-bit", "awq ", "gptq ",
-            # モデルリリース
-            "model release", "new model", "open model",
-            "haiku", "sonnet", "opus", "turbo", "ultra", "flash",
-            "thinking mode", "extended thinking",
-            "prompt caching", "computer use",
-            "function call", "tool use",
-            # 研究テーマ
-            "long context", "retrieval ", "memory ", "agent ",
-            "hallucin", "grounding", "factual",
-            "image generation", "text generation",
-            "speech recognition", "translation model",
-            "embedding model", "reranker",
+            # バッテリーシステム
+            "bess", "battery energy storage", "grid-scale battery",
+            "battery storage system", "energy storage system", "ess ",
+            "utility-scale storage", "large-scale battery",
+            # セル化学
+            "lfp", "lithium iron phosphate", "nmc ", "nmca", "nca ",
+            "sodium-ion", "sodium ion", "solid state battery", "all-solid",
+            "solid-state", "全固体", "ナトリウムイオン",
+            "vanadium redox", "flow battery", "redox flow",
+            "lead-acid", "zinc", "iron-air", "hydrogen storage",
+            # 日本語
+            "蓄電池", "系統用蓄電", "リチウムイオン", "リン酸鉄リチウム",
+            "レドックスフロー", "フロー電池",
+            # 長期蓄電・揚水
+            "long duration", "long-duration storage", "ldes",
+            "pumped hydro", "pumped storage", "揚水発電", "揚水",
+            "compressed air", "caes",
+            # コンポーネント・制御
+            "pcs ", "power conversion system", "bms ", "battery management",
+            "inverter", "dc-ac", "ac-dc",
+            # 性能指標
+            "round-trip efficiency", "cycle life", "state of charge",
+            "soc ", "soh ", "depth of discharge", "dod ",
+            "energy density", "power density", "c-rate",
+            "thermal runaway", "fire suppression", "thermal management",
+            # 製品名
+            "megapack", "powerpack", "powerwall",
+            # V2G・第二の用途
+            "v2g ", "vehicle to grid", "vehicle-to-grid",
+            "second life battery", "second-life battery",
         ]
     },
-    "tools": {
-        "label": "ツール・開発",
-        "emoji": "🛠️",
+    "grid_ops": {
+        "label": "系統運用",
+        "emoji": "⚡",
         "border": "#3ab8c0",
         "keywords": [
-            # ツール・ライブラリ
-            "open source", "opensource", "github ", "repository", "repo ",
-            "framework", "library", " sdk", " api ", "plugin", "extension",
-            "mcp ", "model context protocol",
-            "cursor ", "windsurf", "codeium", "tabnine", "continue ",
-            "vscode", "ide ", "neovim", "jetbrains",
-            "lm studio", "jan ", "msty ",
-            # 開発コンセプト
-            "developer tool", "coding assistant", "code completion",
-            "code generation", "code editor", "code review",
-            "agentic ", "agent framework", "multi-agent", "agent loop",
-            "workflow ", "pipeline", "orchestrat",
-            "rag ", "retrieval augmented", "vector database", "vector db",
-            "knowledge base", "knowledge graph",
-            "langchain", "llamaindex", "llama-index", "haystack",
-            "autogen", "crewai", "langgraph", "dspy", "pydantic ai",
-            "function calling", "tool calling", "structured output", "json mode",
-            "prompt engineer", "system prompt", "prompt template",
-            # インフラ・デプロイ
-            "self-host", "self hosted", "run local", "on-premise",
-            "local model", "local llm", "edge ", "on-device",
-            "ollama", "llama.cpp", "vllm", "text-generation-inference",
-            "triton ", "torchserve",
-            "docker", "kubernetes", "k8s",
-            "fastapi", "flask", " cli ", "command line interface",
-            "automation", "integration", "webhook", "n8n ",
-            "browser automation", "web scraping", "playwright",
-            # 開発ツール
-            "debugg", "logging", "monitoring", "observab",
-            "token count", "context manag", "rate limit",
-            "streaming ", "async ", "batch processing",
-            "fine-tune your", "train your own",
-            "claude code", "cursor rules", "claude.md",
+            # アンシラリーサービス（英語）
+            "ancillary service", "ancillary services",
+            "frequency regulation", "frequency response", "frequency control",
+            "frequency containment", "frequency deviation",
+            "fcr ", "ffr ", "drr ", "dcr ", "efr ",
+            "primary response", "secondary response", "tertiary response",
+            "primary reserve", "secondary reserve", "tertiary reserve",
+            "synthetic inertia", "virtual inertia", "grid inertia",
+            "fast frequency", "dynamic containment",
+            # 需給調整（日本語）
+            "需給調整", "周波数調整", "調整力",
+            "一次調整力", "二次調整力", "三次調整力",
+            "アンシラリー", "慣性力",
+            # 系統安定化
+            "grid stabilization", "grid stability", "grid balancing",
+            "grid services", "grid integration", "grid support",
+            "系統安定", "系統運用", "系統安定化", "系統制御",
+            "電力需給", "需給バランス",
+            # デマンドレスポンス
+            "demand response", "demand flexibility", "demand side",
+            "load shifting", "peak shaving", "peak demand",
+            # 出力制御
+            "curtailment", "output curtailment", "renewable curtailment",
+            "出力制御", "出力抑制",
+            # 系統接続
+            "ノンファーム", "non-firm connection", "ノンファーム型接続",
+            "系統混雑", "送電混雑", "潮流", "連系線",
+            # 系統運用者
+            "occto", "広域機関",
+            "tso ", "dso ", "iso ", "system operator",
+            # VPP・アグリゲーション
+            "vpp", "virtual power plant", "仮想発電所",
+            "aggregator", "アグリゲーター", "リソースアグリゲーター",
+        ]
+    },
+    "market_policy": {
+        "label": "市場・制度",
+        "emoji": "📋",
+        "border": "#e0a040",
+        "keywords": [
+            # FIT / FIP
+            "fip ", "feed-in premium", "フィード・イン・プレミアム",
+            "fip転", "fip制度", "fit制度", "固定価格買取",
+            "fit ", "feed-in tariff",
+            "premium payment", "reference price", "基準価格",
+            "balancing group", "バランシンググループ", "インバランス精算",
+            # 電力市場
+            "容量市場", "capacity market", "capacity auction",
+            "需給調整市場",
+            "spot market", "スポット市場", "jepx",
+            "インバランス", "imbalance", "imbalance settlement",
+            "kw市場", "kw価値", "kw value",
+            "電力市場", "power market", "electricity market",
+            "先渡市場", "先物市場",
+            # 規制・制度
+            "regulation ", "regulatory reform", "規制改正",
+            "再エネ賦課金", "renewable surcharge",
+            "系統マスタープラン", "grid master plan",
+            "電源入札", "公募入札", "renewable auction",
+            "ferc ", "cpuc ", "eu ai act",
+            # 目標・政策
+            "carbon market", "カーボンクレジット", "j-credit",
+            "再エネ特措法", "省エネ法", "電気事業法",
+            "gx ", "グリーントランスフォーメーション",
+            "脱炭素", "carbon neutral", "net zero", "net-zero",
+            "renewable target", "再エネ目標",
+            "2030年", "2050年",
+            # 欧米制度
+            "entso", "eu taxonomy", "red ii", "red iii",
+            "ira ", "inflation reduction act",
+        ]
+    },
+    "project": {
+        "label": "プロジェクト",
+        "emoji": "🏗️",
+        "border": "#80c080",
+        "keywords": [
+            # プロジェクトライフサイクル
+            "着工", "竣工", "稼働", "運転開始", "商業運転",
+            "commissioned", "operational", "went online", "came online",
+            "construction begins", "ground-breaking", "建設中",
+            # 規模・容量
+            "mw battery", "mwh battery", "gwh battery",
+            "mw bess", "mwh bess",
+            "mw storage", "mwh storage",
+            # 入札・調達
+            "入札", "公募", "落札", "応募", "選定",
+            "procurement", "tender ", "bid ", "contract award",
+            "epc ", "turnkey",
+            # 実証・パイロット
+            "pilot project", "pilot program",
+            "demonstration project", "demo project",
+            "実証", "実証事業", "実証試験", "実証実験",
+            "実証プロジェクト",
+            # ハイブリッド・共設置
+            "co-located", "co-location", "hybrid project",
+            "solar-plus-storage", "solar plus storage",
+            "wind-plus-storage", "wind plus storage",
+            "再エネ＋蓄電", "太陽光＋蓄電",
+            "再エネ蓄電",
+            # 特定プロジェクト形態
+            "grid-connected project", "utility-scale project",
+            "standalone storage", "独立型蓄電",
         ]
     },
     "business": {
-        "label": "ビジネス・業界",
+        "label": "ビジネス",
         "emoji": "💼",
-        "border": "#e0a040",
+        "border": "#e06060",
         "keywords": [
             # 資金調達
             "funding", "raises $", "raised $", " million", " billion",
-            "investment", "investor", "venture capital", " vc ",
-            "series a", "series b", "series c", "series d", "series e",
-            "seed round", "pre-seed", "bridge round",
-            "valuation", "unicorn", "decacorn",
+            "investment", "investor", "venture capital",
+            "series a", "series b", "series c", "series d",
+            "financing", "project finance", "debt financing",
+            "グリーンボンド", "green bond", "出資",
             # M&A・提携
-            "acquisition", "acquires", "acquired by", "merger",
-            "buys ", "bought by", "takeover", "spinoff",
-            "partnership", "joint venture", "strategic alliance",
+            "acquisition", "acquires", "merger", "takeover",
+            "partnership", "joint venture", "提携", "合弁", "買収",
             # 上場・財務
-            "ipo ", "public offering", "nasdaq", "nyse", " stock",
-            "revenue", "profit", "quarterly", "earnings", "fiscal",
-            "market cap", "valuation",
-            # 人事・組織
-            "layoff", "laid off", "job cut", "reorg", "restructur",
-            "headcount", "workforce reduction",
-            "ceo ", "cto ", "coo ", "cpo ", "chief ", "founder ",
-            "hire ", "hiring ", "talent",
-            # 企業・製品
-            "enterprise ", "b2b ", "saas ",
-            "market share", "competition ", "competitor",
-            "product launch", "launches ", "announces ",
-            # 大手テック
-            "microsoft", "google ", "amazon web", "apple ",
-            "meta ai", "nvidia", "samsung", "huawei", "baidu", "alibaba",
-            "salesforce", "oracle", "ibm ",
-            "openai", "anthropic", "deepmind", "inflection",
-            "cohere", "mistral ai", "stability ai", "runway",
-            "character.ai", "perplexity", "pika ", "kling",
-            # ビジネストレンド
-            "industry report", "market research", "survey ",
-            "customer", "enterprise adoption", "commercial",
-            "startup", "unicorn", "accelerator", "incubator",
+            "ipo ", "stock", "revenue", "profit", "earnings",
+            "market share", "valuation",
+            # 企業名（蓄電池主要プレイヤー）
+            "tesla ", "fluence", "wärtsilä", "wartsila",
+            "catl ", "byd ", "samsung sdi", "lg energy", "panasonic",
+            "mitsubishi", "toshiba", "hitachi", "nec ", "ngk ",
+            "eneos", "jera ", "tepco", "関西電力", "中部電力", "九州電力",
+            "東京電力", "関電", "softbank energy",
+            "enel ", "abb ", "siemens", "schneider",
+            "invinity", "form energy", "ambri", "ess inc",
+            # サプライチェーン
+            "lithium supply", "cobalt", "nickel supply",
+            "supply chain", "サプライチェーン",
+            "cathode material", "anode material", "electrolyte",
+            "gigafactory", "ギガファクトリー", "電池工場",
+            # 人事
+            "layoff", "ceo ", "cto ", "chief executive",
         ]
     },
-    "society": {
-        "label": "社会・倫理",
+    "overseas": {
+        "label": "海外動向",
         "emoji": "🌍",
-        "border": "#e06060",
-        "keywords": [
-            # 安全・倫理
-            "ai safety", "safe ai", "safety of ai",
-            "ethics", "ethical ai", "responsible ai",
-            "trustworthy", "transparency",
-            "explainab", "interpretab", "black box",
-            "bias ", "fairness", "discrimination", "stereotype",
-            # 規制・法律
-            "regulation", "regulate", "regulator",
-            " law ", "legal ", "legislation", "bill ",
-            "policy ", "government", "congress", "senate",
-            "parliament", "white house", "eu ",
-            "eu ai act", "gdpr", "ccpa", "executive order",
-            "national security", "ban ", "restrict ", "prohibit",
-            "compliance", "audit ",
-            # 危害・リスク
-            "copyright", "intellectual property", "ip theft",
-            "plagiarism", "training data",
-            "privacy ", "surveillance", "data collection",
-            "misinformation", "disinformation", "fake news",
-            "deepfake", "synthetic media", "voice clone",
-            "hallucination", "confabulation", "factual error",
-            "risk ", "danger ", "harm ", "threat ", "concern ",
-            "vulnerability", "jailbreak", "prompt injection",
-            "adversarial", "poisoning",
-            # 社会的影響
-            "job loss", "unemployment", "replace worker",
-            "automate job", "human worker", "displaced",
-            "future of work", "ai impact",
-            "education", "student", "cheating", "academic integrity",
-            "environment", "energy consumption", "carbon footprint",
-            "sustainability", "power usage", "water usage",
-            "human rights", "democratic", "election",
-            "censorship", "freedom of speech",
-            "mental health", "wellbeing", "addiction",
-            "inequality", "digital divide",
-            "healthcare", "medical ai", "clinical",
-            "autonomous weapon", "military ai",
-        ]
-    },
-    "build_ideas": {
-        "label": "作ってみた",
-        "emoji": "💡",
         "border": "#c8b400",
         "keywords": [
-            # Show HN系（高シグナル・重み付き）
-            "show hn:", "show hn ",
-            # 一人称ビルド
-            "i built", "i made ", "i created", "i wrote ",
-            "i developed", "i trained", "i fine-tuned",
-            "we built", "we made ", "we created", "we developed",
-            "i'm building", "we're building",
-            "i've been building", "i've been working on",
-            "my tool", "my app ", "my project",
-            "built a ", "built an ", "made a ", "made an ",
-            # 公開・リリース表現
-            "just launched", "just released", "just shipped",
-            "just open sourced", "just published",
-            "introducing my", "announcing my", "releasing my",
-            "open sourced my", "released my",
-            # プロジェクト種別
-            "side project", "weekend project", "hobby project",
-            "personal project", "fun project", "for fun",
-            " demo ", "prototype", "proof of concept", " poc ",
-            "experiment with", "experimenting with",
-            # チュートリアル
-            "how i ", "how to build", "how i built",
-            "step by step", "walkthrough", "tutorial on",
-            "getting started with", "beginner guide",
-            # クリエイティブAI
-            "ai art", "ai music", "ai video", "ai game",
-            "ai story", "ai writing", "ai poem",
-            "generate images", "generating images",
-            "text-to-image", "text to image",
-            "text-to-video", "text to video",
-            "text-to-speech", "voice synthesis",
-            "avatar ", "character ai",
-            # アプリ種別
-            "chrome extension", "browser extension",
-            "mobile app", "ios app", "android app",
-            "discord bot", "slack bot", "telegram bot",
-            " cli tool", "command line tool",
-            "hack ", "hacking with", "built with claude",
-            "built with gpt", "built with llm",
-            "claude code", "vibe cod",
+            # オーストラリア（BESS先進市場）
+            "australia", "australian", "aemo ", "hornsdale",
+            "neoen", "victoria big battery", "waratah super battery",
+            "nem ", "national electricity market",
+            "fcas ", "contingency fcas", "regulation fcas",
+            "big battery", "grid battery australia",
+            # イギリス
+            "great britain", "national grid eso", "neso ",
+            "balancing mechanism", " bm ", "bmu ",
+            "firm frequency response", "enhanced frequency response",
+            "dynamic containment", "dynamic moderation",
+            "capacity market uk", "uk storage",
+            # アメリカ
+            "united states storage", "us storage",
+            "caiso ", "pjm ", "ercot ", "miso ", "nyiso",
+            "ferc order", "ferc rule",
+            "california storage", "texas grid",
+            "inflation reduction act", "ira storage",
+            # ヨーロッパ
+            "european storage", "eu storage",
+            "entso-e", "germany storage", "deutschland",
+            "france storage", "spain storage",
+            "nordic flexibility", "flexibility market europe",
+            # アジア
+            "china battery market", "south korea battery",
+            "india storage market", "taiwan grid storage",
+            # 海外制度・市場設計
+            "capacity mechanism", "revenue stacking",
+            "multiple revenue streams", "co-optimisation",
         ]
-    }
+    },
 }
 
 # ── 高シグナルキーワード（スコア3倍） ────────────────────────────────────────
 
 HIGH_SIGNAL: dict[str, list[str]] = {
-    "build_ideas": ["show hn:", "i built", "i made ", "we built",
-                    "just launched", "side project", "weekend project"],
-    "business":    ["raises $", "raised $", "series a", "series b",
-                    "series c", "acquisition", "acquires", "layoff"],
-    "society":     ["eu ai act", "ai safety", "regulation", "deepfake",
-                    "jailbreak", "copyright", "job loss"],
-    "research":    ["benchmark", "arxiv", "rlhf", "dpo ", "finetun"],
-    "tools":       ["mcp ", "open source", "langchain", "rag "],
+    "storage_tech":   ["bess", "battery energy storage", "蓄電池", "lfp", "megapack",
+                       "flow battery", "long-duration storage", "pumped hydro"],
+    "grid_ops":       ["ancillary service", "ancillary services", "frequency regulation",
+                       "需給調整", "出力制御", "系統安定", "virtual power plant", "vpp"],
+    "market_policy":  ["fip ", "feed-in premium", "fip転", "容量市場", "jepx",
+                       "需給調整市場", "feed-in tariff", "inflation reduction act"],
+    "project":        ["commissioned", "mw battery", "mwh battery", "実証事業",
+                       "co-located", "solar-plus-storage"],
+    "business":       ["raises $", "series a", "series b", "acquisition", "acquires",
+                       "catl ", "fluence", "gigafactory"],
+    "overseas":       ["aemo ", "ferc order", "caiso ", "national grid eso",
+                       "hornsdale", "fcas "],
 }
 
 
@@ -268,9 +270,9 @@ def classify_article(title: str, body_text: Optional[str] = None) -> str:
                     scores[genre_id] += 1
 
     best = max(scores, key=lambda g: scores[g])
-    return best if scores[best] > 0 else "research"
+    return best if scores[best] > 0 else "storage_tech"
 
 
 def get_genre_info(genre_id: str) -> dict:
     """ジャンルIDからラベル・絵文字等を取得する。"""
-    return GENRES.get(genre_id, GENRES["research"])
+    return GENRES.get(genre_id, GENRES["storage_tech"])

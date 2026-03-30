@@ -7,16 +7,25 @@ from typing import Optional
 DB_PATH = Path(__file__).parent / "news.sqlite"
 
 DEFAULT_RSS_SOURCES = [
-    ("TechCrunch AI",       "https://techcrunch.com/category/artificial-intelligence/feed/"),
-    ("VentureBeat AI",      "https://venturebeat.com/category/ai/feed/"),
-    ("AI News",             "https://www.artificialintelligence-news.com/feed/"),
-    ("Reddit r/artificial", "https://www.reddit.com/r/artificial/.rss"),
-    ("Reddit r/LocalLLaMA", "https://www.reddit.com/r/LocalLLaMA/.rss"),
-    ("Hacker News",         "https://hnrss.org/newest?q=AI+OR+LLM+OR+Claude+OR+ChatGPT&count=20"),
-    ("OpenAI Blog",         "https://openai.com/blog/rss.xml"),
-    ("Google AI Blog",      "https://blog.research.google/feeds/posts/default"),
-    ("Anthropic",           "https://www.anthropic.com/rss.xml"),
-    ("The Decoder",         "https://the-decoder.com/feed/"),
+    # ── Layer 1: 専門メディア（直接RSS） ──────────────────────────────────────
+    ("Energy Storage News",       "https://www.energy-storage.news/feed/"),
+    ("PV Magazine",               "https://www.pv-magazine.com/feed/"),
+    ("PV Tech",                   "https://www.pvtech.org/feed/"),
+    ("Utility Dive",              "https://www.utilitydive.com/feeds/news/"),
+    ("Canary Media",              "https://www.canarymedia.com/feed"),
+    ("RenewEconomy",              "https://reneweconomy.com.au/feed/"),
+    ("CleanTechnica",             "https://cleantechnica.com/feed/"),
+    ("Renewable Energy World",    "https://www.renewableenergyworld.com/feed/"),
+    # ── Layer 2: Google News RSS - 日本語キーワード ───────────────────────────
+    ("GNews: 系統用蓄電池",        "https://news.google.com/rss/search?q=%E7%B3%BB%E7%B5%B1%E7%94%A8%E8%93%84%E9%9B%BB%E6%B1%A0&hl=ja&gl=JP&ceid=JP:ja"),
+    ("GNews: 需給調整市場",        "https://news.google.com/rss/search?q=%E9%9C%80%E7%B5%A6%E8%AA%BF%E6%95%B4%E5%B8%82%E5%A0%B4&hl=ja&gl=JP&ceid=JP:ja"),
+    ("GNews: FIP蓄電池",           "https://news.google.com/rss/search?q=FIP+%E8%93%84%E9%9B%BB%E6%B1%A0&hl=ja&gl=JP&ceid=JP:ja"),
+    ("GNews: 出力制御蓄電池",      "https://news.google.com/rss/search?q=%E5%87%BA%E5%8A%9B%E5%88%B6%E5%BE%A1+%E8%93%84%E9%9B%BB%E6%B1%A0&hl=ja&gl=JP&ceid=JP:ja"),
+    ("GNews: 系統安定化蓄電池",    "https://news.google.com/rss/search?q=%E7%B3%BB%E7%B5%B1%E5%AE%89%E5%AE%9A%E5%8C%96+%E8%93%84%E9%9B%BB%E6%B1%A0&hl=ja&gl=JP&ceid=JP:ja"),
+    # ── Layer 2: Google News RSS - 英語キーワード ────────────────────────────
+    ("GNews: BESS grid",          "https://news.google.com/rss/search?q=%22battery+energy+storage%22+grid&hl=en&gl=US&ceid=US:en"),
+    ("GNews: grid-scale battery", "https://news.google.com/rss/search?q=%22grid-scale+battery%22&hl=en&gl=US&ceid=US:en"),
+    ("GNews: ancillary battery",  "https://news.google.com/rss/search?q=%22ancillary+services%22+battery&hl=en&gl=US&ceid=US:en"),
 ]
 
 

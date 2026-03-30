@@ -53,16 +53,33 @@ def validate_url(url: str) -> None:
         raise ValueError("プライベート/内部アドレスへのアクセスは許可されていません")
 
 RSS_FEEDS = [
-    "https://techcrunch.com/category/artificial-intelligence/feed/",
-    "https://venturebeat.com/category/ai/feed/",
-    "https://www.artificialintelligence-news.com/feed/",
-    "https://www.reddit.com/r/artificial/.rss",
-    "https://www.reddit.com/r/LocalLLaMA/.rss",
-    "https://hnrss.org/newest?q=AI+OR+LLM+OR+Claude+OR+ChatGPT&count=20",
-    "https://openai.com/blog/rss.xml",
-    "https://blog.research.google/feeds/posts/default",
-    "https://www.anthropic.com/rss.xml",
-    "https://the-decoder.com/feed/",
+    # ── Layer 1: 専門メディア（直接RSS） ──────────────────────────────────────
+    "https://www.energy-storage.news/feed/",
+    "https://www.pv-magazine.com/feed/",
+    "https://www.pvtech.org/feed/",
+    "https://www.utilitydive.com/feeds/news/",
+    "https://www.canarymedia.com/feed",
+    "https://reneweconomy.com.au/feed/",
+    "https://cleantechnica.com/feed/",
+    "https://www.renewableenergyworld.com/feed/",
+    # ── Layer 2: Google News RSS - 日本語キーワード ───────────────────────────
+    # 系統用蓄電池
+    "https://news.google.com/rss/search?q=%E7%B3%BB%E7%B5%B1%E7%94%A8%E8%93%84%E9%9B%BB%E6%B1%A0&hl=ja&gl=JP&ceid=JP:ja",
+    # 需給調整市場
+    "https://news.google.com/rss/search?q=%E9%9C%80%E7%B5%A6%E8%AA%BF%E6%95%B4%E5%B8%82%E5%A0%B4&hl=ja&gl=JP&ceid=JP:ja",
+    # FIP 蓄電池
+    "https://news.google.com/rss/search?q=FIP+%E8%93%84%E9%9B%BB%E6%B1%A0&hl=ja&gl=JP&ceid=JP:ja",
+    # 出力制御 蓄電池
+    "https://news.google.com/rss/search?q=%E5%87%BA%E5%8A%9B%E5%88%B6%E5%BE%A1+%E8%93%84%E9%9B%BB%E6%B1%A0&hl=ja&gl=JP&ceid=JP:ja",
+    # 系統安定化 蓄電池
+    "https://news.google.com/rss/search?q=%E7%B3%BB%E7%B5%B1%E5%AE%89%E5%AE%9A%E5%8C%96+%E8%93%84%E9%9B%BB%E6%B1%A0&hl=ja&gl=JP&ceid=JP:ja",
+    # ── Layer 2: Google News RSS - 英語キーワード ────────────────────────────
+    # "battery energy storage" grid
+    "https://news.google.com/rss/search?q=%22battery+energy+storage%22+grid&hl=en&gl=US&ceid=US:en",
+    # "grid-scale battery"
+    "https://news.google.com/rss/search?q=%22grid-scale+battery%22&hl=en&gl=US&ceid=US:en",
+    # "ancillary services" battery
+    "https://news.google.com/rss/search?q=%22ancillary+services%22+battery&hl=en&gl=US&ceid=US:en",
 ]
 
 HEADERS = {

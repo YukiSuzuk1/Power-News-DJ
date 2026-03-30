@@ -161,11 +161,12 @@
     .chip-all.active   { background: #0d2a1a; color: #5acf7a; border-color: #1a4a2a; }
     .chip-fav          { background: #151200; color: #5a5020; }
     .chip-fav.active   { background: #2a2000; color: #e8c000; border-color: #5a4400; }
-    .chip-research.active  { background: #1a2040; color: #8ab4ff; border-color: #2a3060; }
-    .chip-tools.active     { background: #0e2828; color: #5adcd0; border-color: #1a4040; }
-    .chip-business.active  { background: #281800; color: #e0c060; border-color: #4a3000; }
-    .chip-society.active   { background: #280a0a; color: #e09090; border-color: #4a1818; }
-    .chip-build.active     { background: #1e1a00; color: #d4c040; border-color: #3a3000; }
+    .chip-storage_tech.active  { background: #1a2040; color: #8ab4ff; border-color: #2a3060; }
+    .chip-grid_ops.active      { background: #0e2828; color: #5adcd0; border-color: #1a4040; }
+    .chip-market_policy.active { background: #281800; color: #e0c060; border-color: #4a3000; }
+    .chip-project.active       { background: #0e2018; color: #60d090; border-color: #1a4030; }
+    .chip-business.active      { background: #280a0a; color: #e09090; border-color: #4a1818; }
+    .chip-overseas.active      { background: #1e1a00; color: #d4c040; border-color: #3a3000; }
 
     /* ── Status bar ── */
     #status-bar {
@@ -507,22 +508,23 @@
   </div>
   <div class="filter-scroll">
     <span class="chip chip-all active" data-src="" onclick="toggleSource('')">すべて</span>
-    <span class="chip" data-src="techcrunch.com" onclick="toggleSource('techcrunch.com')">TechCrunch</span>
-    <span class="chip" data-src="venturebeat.com" onclick="toggleSource('venturebeat.com')">VentureBeat</span>
-    <span class="chip" data-src="www.artificialintelligence-news.com" onclick="toggleSource('www.artificialintelligence-news.com')">AI News</span>
-    <span class="chip" data-src="www.reddit.com" onclick="toggleSource('www.reddit.com')">Reddit</span>
-    <span class="chip" data-src="hnrss.org" onclick="toggleSource('hnrss.org')">HN</span>
-    <span class="chip" data-src="openai.com" onclick="toggleSource('openai.com')">OpenAI</span>
-    <span class="chip" data-src="blog.research.google" onclick="toggleSource('blog.research.google')">Google</span>
-    <span class="chip" data-src="www.anthropic.com" onclick="toggleSource('www.anthropic.com')">Anthropic</span>
-    <span class="chip" data-src="the-decoder.com" onclick="toggleSource('the-decoder.com')">Decoder</span>
+    <span class="chip" data-src="www.energy-storage.news" onclick="toggleSource('www.energy-storage.news')">ESN</span>
+    <span class="chip" data-src="www.pv-magazine.com" onclick="toggleSource('www.pv-magazine.com')">PV Mag</span>
+    <span class="chip" data-src="www.pvtech.org" onclick="toggleSource('www.pvtech.org')">PVTech</span>
+    <span class="chip" data-src="www.utilitydive.com" onclick="toggleSource('www.utilitydive.com')">UtilityDive</span>
+    <span class="chip" data-src="www.canarymedia.com" onclick="toggleSource('www.canarymedia.com')">Canary</span>
+    <span class="chip" data-src="reneweconomy.com.au" onclick="toggleSource('reneweconomy.com.au')">RenewEco</span>
+    <span class="chip" data-src="cleantechnica.com" onclick="toggleSource('cleantechnica.com')">CleanTech</span>
+    <span class="chip" data-src="www.renewableenergyworld.com" onclick="toggleSource('www.renewableenergyworld.com')">REWorld</span>
+    <span class="chip" data-src="news.google.com" onclick="toggleSource('news.google.com')">Google News</span>
     <span class="filter-sep"></span>
     <span class="chip chip-all active" data-genre="" onclick="toggleGenre('')">全ジャンル</span>
-    <span class="chip chip-research" data-genre="research" onclick="toggleGenre('research')">🔬 研究</span>
-    <span class="chip chip-tools" data-genre="tools" onclick="toggleGenre('tools')">🛠️ 開発</span>
+    <span class="chip chip-storage_tech" data-genre="storage_tech" onclick="toggleGenre('storage_tech')">🔋 蓄電技術</span>
+    <span class="chip chip-grid_ops" data-genre="grid_ops" onclick="toggleGenre('grid_ops')">⚡ 系統運用</span>
+    <span class="chip chip-market_policy" data-genre="market_policy" onclick="toggleGenre('market_policy')">📋 市場・制度</span>
+    <span class="chip chip-project" data-genre="project" onclick="toggleGenre('project')">🏗️ プロジェクト</span>
     <span class="chip chip-business" data-genre="business" onclick="toggleGenre('business')">💼 ビジネス</span>
-    <span class="chip chip-society" data-genre="society" onclick="toggleGenre('society')">🌍 社会・倫理</span>
-    <span class="chip chip-build" data-genre="build_ideas" onclick="toggleGenre('build_ideas')">💡 作ってみた</span>
+    <span class="chip chip-overseas" data-genre="overseas" onclick="toggleGenre('overseas')">🌍 海外動向</span>
     <span class="filter-sep"></span>
     <span class="chip chip-fav" id="chip-fav" onclick="toggleFavoriteFilter()">⭐ お気に入り</span>
     <span class="chip chip-unread" id="chip-unread" onclick="toggleUnreadFilter()">📭 未読</span>
@@ -577,26 +579,30 @@ let totalPages       = 1;
 let lastRenderedDate = null;
 
 const GENRE_INFO = {
-  research:   { emoji: '🔬', label: 'モデル・研究' },
-  tools:      { emoji: '🛠️', label: 'ツール・開発' },
-  business:   { emoji: '💼', label: 'ビジネス' },
-  society:    { emoji: '🌍', label: '社会・倫理' },
-  build_ideas:{ emoji: '💡', label: '作ってみた' },
+  storage_tech:  { emoji: '🔋', label: '蓄電技術' },
+  grid_ops:      { emoji: '⚡', label: '系統運用' },
+  market_policy: { emoji: '📋', label: '市場・制度' },
+  project:       { emoji: '🏗️', label: 'プロジェクト' },
+  business:      { emoji: '💼', label: 'ビジネス' },
+  overseas:      { emoji: '🌍', label: '海外動向' },
 };
 
 const SRC_BADGE = {
-  'techcrunch.com':                        { label: 'TechCrunch', cls: 'src-tc' },
-  'venturebeat.com':                       { label: 'VentureBeat', cls: 'src-vb' },
-  'www.artificialintelligence-news.com':   { label: 'AI News', cls: 'src-ai' },
-  'artificialintelligence-news.com':       { label: 'AI News', cls: 'src-ai' },
-  'www.reddit.com':                        { label: 'Reddit', cls: 'src-reddit' },
-  'reddit.com':                            { label: 'Reddit', cls: 'src-reddit' },
-  'hnrss.org':                             { label: 'HN', cls: 'src-hn' },
-  'openai.com':                            { label: 'OpenAI', cls: 'src-openai' },
-  'blog.research.google':                  { label: 'Google', cls: 'src-google' },
-  'www.anthropic.com':                     { label: 'Anthropic', cls: 'src-anth' },
-  'anthropic.com':                         { label: 'Anthropic', cls: 'src-anth' },
-  'the-decoder.com':                       { label: 'Decoder', cls: 'src-dec' },
+  'www.energy-storage.news':        { label: 'ESN',         cls: 'src-esn' },
+  'energy-storage.news':            { label: 'ESN',         cls: 'src-esn' },
+  'www.pv-magazine.com':            { label: 'PV Mag',      cls: 'src-pvmag' },
+  'pv-magazine.com':                { label: 'PV Mag',      cls: 'src-pvmag' },
+  'www.pvtech.org':                 { label: 'PVTech',      cls: 'src-pvtech' },
+  'pvtech.org':                     { label: 'PVTech',      cls: 'src-pvtech' },
+  'www.utilitydive.com':            { label: 'UtilityDive', cls: 'src-udive' },
+  'utilitydive.com':                { label: 'UtilityDive', cls: 'src-udive' },
+  'www.canarymedia.com':            { label: 'Canary',      cls: 'src-canary' },
+  'canarymedia.com':                { label: 'Canary',      cls: 'src-canary' },
+  'reneweconomy.com.au':            { label: 'RenewEco',    cls: 'src-renew' },
+  'cleantechnica.com':              { label: 'CleanTech',   cls: 'src-ct' },
+  'www.renewableenergyworld.com':   { label: 'REWorld',     cls: 'src-rew' },
+  'renewableenergyworld.com':       { label: 'REWorld',     cls: 'src-rew' },
+  'news.google.com':                { label: 'Google News', cls: 'src-gnews' },
 };
 
 function getSrcBadge(source) {
