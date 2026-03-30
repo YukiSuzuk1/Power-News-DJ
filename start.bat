@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d %~dp0
-title AI News DJ
+title Power News DJ
 
 echo [1/3] Checking Ollama...
 curl -s http://localhost:11434 >nul 2>&1
@@ -17,7 +17,7 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8000 " ^| findstr LISTENING
 )
 timeout /t 1 /nobreak >nul
 
-echo [3/3] Starting AI News DJ...
+echo [3/3] Starting Power News DJ...
 echo   http://localhost:8000
 echo   Stop: Ctrl+C
 echo.
